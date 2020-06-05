@@ -525,6 +525,7 @@ dependencies = [
 name = "rocket_blog"
 version = "0.1.0"
 dependencies = [
+ "glob",
  "rocket",
 ]
 
