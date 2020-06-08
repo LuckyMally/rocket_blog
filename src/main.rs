@@ -4,11 +4,34 @@
 
 
 #[get("/")]
-fn index() -> &'static str {
-    "Hello, world!"
+fn index(redis: State<Vec<Article>>) -> Html<String>  {
+    let mut ret = String::from("
+    <html>
+    <body>");
+    
+    for article in redis.inner(){
+
+        ret.push_str(&String::from(format!("
+        <ul>
+            <li> <a href='{}'>{}</a> </li>
+            <li> <img src='{}' /> </li>
+      </ul> 
+
+        ",article.document_path,article.title, article.front_image_path)));
+
+    }
+    ret.push_str("
+    </body>
+    </html>");
+    return Html(ret);
 }
+
+
 use std::vec;
 use glob::glob;
+use rocket::State;
+use rocket_contrib::serve::StaticFiles;
+use rocket::response::content::Html;
 
 struct Article {
     title: String,
@@ -24,6 +47,7 @@ impl Article {
         }
     }
 }
+
 fn main() {
     let mut article_store: Vec<Article> = Vec::new();
     for entry in glob("Assets/*").expect("Failed to read glob pattern") {
@@ -31,7 +55,7 @@ fn main() {
         let mut article: Article = Article::new();
         let x = entry.unwrap();
         if x.metadata().unwrap().is_dir(){
-            article.title = x.display().to_string();
+            article.title = String::from(x.display().to_string().split("/").collect::<Vec<&str>>()[1]);
             
             let find_folder = format!("{}/*.jpg", x.display().to_string());
             for entry in glob(find_folder.as_str()).expect("Failed to read glob pattern") {
@@ -46,9 +70,14 @@ fn main() {
         }
     }
 
-    for a in article_store{
+    for a in &article_store{
         println!("{},{},{}",a.title, a.document_path, a.front_image_path);
     }
 
-    rocket::ignite().mount("/", routes![index]).launch();
+    rocket::ignite()
+    .manage(article_store)
+    .mount("/", routes![index])
+    .mount("/Assets", StaticFiles::from("Assets/"))
+    .launch();
+    
 }
