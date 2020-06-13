@@ -6,21 +6,32 @@
 #[get("/")]
 fn index(redis: State<Vec<Article>>) -> Html<String>  {
     let mut ret = String::from("
-    <html>
-    <body>");
+    <!DOCTYPE html>
+<html lang=\"en\">
+<head>
+  <meta charset=\"UTF-8\">
+  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">
+  <title>Crusader</title>
+  <link rel=\"stylesheet\" type=\"text/css\" href=\"/Assets/CSS/file.css\">
+
+</head>
+
+    <body>
+    <article class=\"markdown-body\">");
     
     for article in redis.inner(){
 
         ret.push_str(&String::from(format!("
         <ul>
             <li> <a href='{}'>{}</a> </li>
-            <li> <img src='{}' /> </li>
+            <img src='{}' />
       </ul> 
 
         ",article.document_path,article.title, article.front_image_path)));
 
     }
     ret.push_str("
+    </article>
     </body>
     </html>");
     return Html(ret);
@@ -54,7 +65,7 @@ fn main() {
 
         let mut article: Article = Article::new();
         let x = entry.unwrap();
-        if x.metadata().unwrap().is_dir(){
+        if x.metadata().unwrap().is_dir() && x.display().to_string().split("/").collect::<Vec<&str>>()[1] != "CSS"{
             article.title = String::from(x.display().to_string().split("/").collect::<Vec<&str>>()[1]);
             
             let find_folder = format!("{}/*.jpg", x.display().to_string());
