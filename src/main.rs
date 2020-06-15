@@ -22,10 +22,12 @@ fn index(redis: State<Vec<Article>>) -> Html<String>  {
     for article in redis.inner(){
 
         ret.push_str(&String::from(format!("
-        <ul>
-            <li> <a href='{}'>{}</a> </li>
-            <img src='{}' />
-      </ul> 
+        <div class='c1'>
+            <a href='{}'>
+                <h1 class='c2' >{}</h1>
+                <img class='c3' src='{}' />
+            </a> 
+      </div>
 
         ",article.document_path,article.title, article.front_image_path)));
 
